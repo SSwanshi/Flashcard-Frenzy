@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
-  },
+  serverExternalPackages: ['mongoose'],
   webpack: (config) => {
     config.externals.push({
       'mongodb-client-encryption': 'commonjs mongodb-client-encryption',

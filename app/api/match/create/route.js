@@ -55,7 +55,7 @@ export async function POST(req) {
     let body = {};
     try {
       body = await req.json();
-    } catch (e) {
+    } catch {
       // If no body is sent, use defaults
       body = {};
     }
