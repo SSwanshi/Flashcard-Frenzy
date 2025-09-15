@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🎮 Flashcard Frenzy Multiplayer
 
-## Getting Started
+Flashcard Frenzy Multiplayer is a real-time, interactive flashcard game where multiple players compete by answering the same question simultaneously.
+The fastest correct answer earns points, and the scoreboard updates instantly for all participants. Perfect for learning, fun, and competition.
 
-First, run the development server:
+🔗 Live Demo: Flashcard Frenzy Multiplayer
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+📂 Repository: GitHub
+
+✨ Features
+
+🔑 Authentication – Secure login & signup for players.
+
+🃏 Real-Time Flashcards – All logged-in players view the same question at once.
+
+⚡ Fastest Answer Wins – The first correct answer instantly updates the scoreboard.
+
+📊 Live Scoreboard – Real-time score tracking for all players.
+
+💾 Match History – Each game’s questions and scores are stored for later review.
+
+🌍 Multiplayer Support – Players can join and compete in the same match session.
+
+🎨 Modern UI – Built with Next.js App Router and optimized fonts with Geist
+.
+
+🛠️ Tech Stack
+
+Frontend: Next.js
+ (App Router, React 18, Server Actions)
+
+Database: MongoDB
+ (match history, scores, questions)
+
+Realtime: Supabase
+ (live updates, subscriptions)
+
+Styling: Tailwind CSS / Shadcn UI (modern, responsive design)
+
+Deployment: Vercel
+
+🚀 Getting Started
+
+Clone the repo and install dependencies:
+
+```
+git clone https://github.com/SSwanshi/Flashcard-Frenzy.git
+
+cd flashcard-frenzy
+
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the development server:
+```
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open http://localhost:3000 in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+⚙️ Environment Variables
 
-## Learn More
+Create a .env.local file in the root directory and configure the following:
 
-To learn more about Next.js, take a look at the following resources:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+MONGODB_URI=your_mongodb_connection_string
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🌍 Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project is deployed on Vercel:
+[Visit Flashcard Frenzy](https://flashcard-frenzy-vs7x.vercel.app)
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
