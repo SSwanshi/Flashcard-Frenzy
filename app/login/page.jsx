@@ -54,7 +54,7 @@ export default function LoginPage() {
         } else if (result.data.user && !result.data.session) {
           // User needs to verify email
           setMessageType("success");
-          setMessage("🎉 Signup successful! Please check your email and click the verification link to complete your registration. You'll be redirected to the home page once verified.");
+          setMessage("🎉 Signup successful! Please check your email and click the verification link to complete your registration. Comeback here and signin again with the same email and password to get redirected to the homepage.");
         } else {
           // User is immediately signed in
           setMessageType("success");
