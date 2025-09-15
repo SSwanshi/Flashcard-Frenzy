@@ -1,103 +1,188 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import type { User } from "@supabase/supabase-js";
 
-export default function Home() {
+export default function HomePage() {
+  const [joinCode, setJoinCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        router.push('/login');
+        return;
+      }
+      setAuthLoading(false);
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          router.push('/login');
+        }
+        setAuthLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  // Create Match
+  const handleCreateMatch = async () => {
+    setLoading(true);
+    try {
+      // Get the current session to get the access token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        alert("Please log in to create a match");
+        return;
+      }
+
+      const res = await fetch("/api/match/create", { 
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('API Error:', errorText);
+        alert(`API Error: ${res.status} - ${errorText}`);
+        return;
+      }
+      
+      const data = await res.json();
+      console.log('Response data:', data);
+      
+      if (data.success) {
+        // Show join code and redirect to lobby
+        alert(`Match created! Join code: ${data.match.joinCode}\nShare this code with other players to join your match.`);
+        router.push(`/lobby/${data.match.lobbyId}`);
+      } else {
+        alert(data.error || "Failed to create match");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error creating match");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Join Match
+  const handleJoinMatch = async () => {
+    if (!joinCode.trim()) {
+      alert("Please enter a join code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Get the current session to get the access token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        alert("Please log in to join a match");
+        return;
+      }
+
+      const res = await fetch("/api/match/join", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ joinCode }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.message) {
+          alert(data.message);
+        }
+        router.push(`/lobby/${data.match.lobbyId}`);
+      } else {
+        alert(data.error || "Failed to join match");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error joining match");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 flex flex-col items-center justify-center">
+        <div className="text-gray-600 text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  // Only show content if user is authenticated
+  if (!user) {
+    return null; // Will redirect to login
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 flex flex-col items-center justify-center">
+      <h1 className="text-5xl font-bold text-gray-800 mb-10">⚡ Flashcard Frenzy</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <div className="flex flex-col gap-6 w-full max-w-sm">
+        {/* Create Match */}
+        <button
+          onClick={handleCreateMatch}
+          disabled={loading}
+          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          {loading ? "Creating..." : "Create Match"}
+        </button>
+
+        {/* Join Match */}
+        <div className="bg-white p-6 rounded-xl shadow-lg">
+          <input
+            type="text"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            placeholder="Enter Join Code"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4"
+          />
+          <button
+            onClick={handleJoinMatch}
+            disabled={loading}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl w-full transition-all duration-200"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {loading ? "Joining..." : "Join Match"}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* View Results */}
+        <button
+          onClick={() => window.location.href = '/results'}
+          className="bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          🏆 View Results
+        </button>
+      </div>
     </div>
   );
 }
