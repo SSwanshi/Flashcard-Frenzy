@@ -4,9 +4,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function AuthButton() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [mode, setMode] = useState("signin");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -17,7 +14,6 @@ export default function AuthButton() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
-        router.push('/');
       }
       setLoading(false);
     };
@@ -29,7 +25,6 @@ export default function AuthButton() {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          router.push('/');
         } else {
           setUser(null);
         }
@@ -38,29 +33,7 @@ export default function AuthButton() {
     );
 
     return () => subscription.unsubscribe();
-  }, [router]); 
-
-  const handleAuth = async () => {
-    setLoading(true);
-    let result;
-    if (mode === "signup") {
-      result = await supabase.auth.signUp({
-        email,
-        password,
-      });
-    } else {
-      result = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-    }
-
-    if (result.error) {
-      alert("Error: " + result.error.message);
-    }
-    // Success is handled by the auth state change listener
-    setLoading(false);
-  };
+  }, []); 
 
   const handleLogout = async () => {
     setLoading(true);
@@ -95,38 +68,18 @@ export default function AuthButton() {
     );
   }
 
+  // If user is not authenticated, redirect to login
   return (
     <div className="p-4 space-y-2">
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="border p-2 rounded w-full"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="border p-2 rounded w-full"
-      />
-
-      <button
-        onClick={handleAuth}
-        disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded w-full disabled:opacity-50"
-      >
-        {loading ? "Processing..." : (mode === "signup" ? "Sign Up" : "Sign In")}
-      </button>
-
-      <button
-        onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-        disabled={loading}
-        className="px-4 py-2 bg-gray-500 text-white rounded w-full disabled:opacity-50"
-      >
-        Switch to {mode === "signup" ? "Sign In" : "Sign Up"}
-      </button>
+      <div className="text-center">
+        <p className="text-gray-600 mb-4">Please sign in to continue</p>
+        <button
+          onClick={() => router.push('/login')}
+          className="px-4 py-2 bg-indigo-600 text-white rounded w-full hover:bg-indigo-700 transition-colors"
+        >
+          Go to Login
+        </button>
+      </div>
     </div>
   );
 }
